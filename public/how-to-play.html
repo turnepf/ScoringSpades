@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f1f1a">
+<meta name="theme-color" content="#0f1f1a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eef3ee" media="(prefers-color-scheme: light)">
 <meta name="google-adsense-account" content="ca-pub-3750434343270810">
 <title>How to Play Spades — Scoring Spades</title>
 <script src="config.js"></script>
@@ -38,6 +39,20 @@
     --gold: #f1c40f;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* Light mode — follows the OS setting. Dark (above) stays the default. */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #eef3ee;
+      --surface: #ffffff;
+      --surface-2: #f0f4f0;
+      --border: #d3ddd5;
+      --text: #15241c;
+      --muted: #5d7066;
+      --team1: #c75a12;
+      --team2: #1f72b8;
+      --gold: #b07d00;
+    }
   }
   html, body {
     background: var(--bg);
