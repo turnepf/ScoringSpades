@@ -12,7 +12,7 @@ collects nothing, and never touches the network.
 | `ScoringSpades/Model/RoundDraft.swift` | A round in progress: bids (with the nil-partner minimum), tricks (team 2 defaults to 13 − team 1), nil made/failed |
 | `ScoringSpades/Model/Tips.swift` | Strategy tips picked from the game state |
 | `ScoringSpades/Model/GameStore.swift` | Observable store; saves the game, last player names, and tips setting to UserDefaults |
-| `ScoringSpades/Views/` | Setup, Scoreboard, Round entry (Bidding → Tricks → Round Score), Game Over, How to Play, Privacy |
+| `ScoringSpades/Views/` | Setup, House Rules, Scoreboard, Round entry (Bidding → Tricks → Round Score), Game Over, How to Play, Privacy |
 | `ScoringSpades/Theme/Theme.swift` | Light/dark palette and shared controls |
 | `ScoringSpadesTests/` | Unit tests that pin scoring to the web app's behavior |
 | `ScoringSpadesUITests/` | Plays a full game and saves App Store screenshots |
@@ -60,7 +60,7 @@ Create the app at [App Store Connect](https://appstoreconnect.apple.com) →
 Apps → **+ New App**: platform iOS, name **Scoring Spades**, bundle ID
 `com.scoringspades.app`, SKU `scoringspades`.
 
-- **Subtitle:** Spades scorekeeper for 4 players
+- **Subtitle:** The easy Spades scorekeeper
 - **Category:** Games → Card (secondary: Utilities)
 - **Price:** Free
 - **Age rating:** answer "None" to everything (4+)

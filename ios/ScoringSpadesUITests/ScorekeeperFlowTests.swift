@@ -32,6 +32,15 @@ final class ScorekeeperFlowTests: XCTestCase {
     XCTAssertTrue(app.buttons["Custom, 400"].waitForExistence(timeout: 5))
     tap(app.buttons["500"])
 
+    // House rules live on their own screen.
+    tap(app.buttons["House Rules"])
+    XCTAssertTrue(app.navigationBars["House Rules"].waitForExistence(timeout: 5))
+    tap(app.buttons["4"])
+    snapshot("06-house-rules")
+    app.navigationBars.buttons.firstMatch.tap()
+    XCTAssertTrue(start.waitForExistence(timeout: 5))
+    XCTAssertEqual(app.buttons["House Rules"].value as? String, "Nil 100 · Blind nil 200 · Partner min 4")
+
     for (label, name) in [("Team 1 Player 1", "Patrick"), ("Team 1 Partner", "Dee"),
                           ("Team 2 Player 3", "Marcus"), ("Team 2 Partner", "Linda")] {
       let input = app.textFields[label]
