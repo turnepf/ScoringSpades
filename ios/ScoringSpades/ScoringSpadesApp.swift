@@ -26,7 +26,7 @@ extension UserDefaults {
 }
 
 enum Route: Hashable {
-  case howToPlay, privacy
+  case howToPlay, privacy, houseRules
 }
 
 struct RootView: View {
@@ -45,6 +45,7 @@ struct RootView: View {
         switch route {
         case .howToPlay: HowToPlayView()
         case .privacy: PrivacyView()
+        case .houseRules: HouseRulesView()
         }
       }
     }

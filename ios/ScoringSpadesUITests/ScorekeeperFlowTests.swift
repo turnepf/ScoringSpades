@@ -32,6 +32,15 @@ final class ScorekeeperFlowTests: XCTestCase {
     XCTAssertTrue(app.buttons["Custom, 400"].waitForExistence(timeout: 5))
     tap(app.buttons["500"])
 
+    // House rules live on their own screen.
+    tap(app.buttons["House Rules"])
+    XCTAssertTrue(app.navigationBars["House Rules"].waitForExistence(timeout: 5))
+    tap(app.buttons["4"])
+    snapshot("06-house-rules")
+    app.navigationBars.buttons.firstMatch.tap()
+    XCTAssertTrue(start.waitForExistence(timeout: 5))
+    XCTAssertEqual(app.buttons["House Rules"].value as? String, "Nil 100 · Blind nil 200 · Partner min 4")
+
     for (label, name) in [("Team 1 Player 1", "Patrick"), ("Team 1 Partner", "Dee"),
                           ("Team 2 Player 3", "Marcus"), ("Team 2 Partner", "Linda")] {
       let input = app.textFields[label]
@@ -108,8 +117,11 @@ final class ScorekeeperFlowTests: XCTestCase {
 
   private func tap(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
     XCTAssertTrue(element.waitForExistence(timeout: 5), "missing \(element)", file: file, line: line)
+    // isHittable ignores the pinned bottom action button, so also scroll
+    // anything sitting in that band; otherwise the tap lands on the button.
+    let actionBarTop = app.windows.firstMatch.frame.maxY - 140
     var swipes = 0
-    while !element.isHittable && swipes < 10 {
+    while (!element.isHittable || element.frame.maxY > actionBarTop) && swipes < 10 {
       app.swipeUp(velocity: .slow)
       swipes += 1
     }

@@ -119,10 +119,10 @@ struct HowToPlayView: View {
       ])
       InfoCard(title: "Nil", formula: "success = +100 | failure = −100", paragraphs: [
         "A player can declare **nil** — a promise to take *zero* tricks. Tap Nil under their name on the bidding screen. Their partner still bids and plays normally. Nil is scored on top of the team's regular bid result.",
-        "100 points is the standard, but you can set your own nil and blind nil values on the setup screen. The setup screen also has an optional house rule requiring the nil bidder's partner to bid a minimum number of tricks (off by default).",
+        "100 points is the standard, but you can set your own nil and blind nil values under House Rules on the setup screen. House Rules also has an optional rule requiring the nil bidder's partner to bid a minimum number of tricks (off by default).",
       ])
       InfoCard(title: "Blind nil", formula: "success = +200 | failure = −200", paragraphs: [
-        "Declare nil *before looking at your hand*. Double reward, double risk. Mostly used when a team is way behind and needs a swing. 200 points is the standard, but the blind nil value is configurable on the setup screen too.",
+        "Declare nil *before looking at your hand*. Double reward, double risk. Mostly used when a team is way behind and needs a swing. 200 points is the standard, but the blind nil value is configurable under House Rules too.",
       ])
 
       PageHeading(text: "Winning the game")

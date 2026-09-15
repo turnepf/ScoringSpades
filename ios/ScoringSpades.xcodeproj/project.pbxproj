@@ -22,6 +22,8 @@
 		8729A234A03B104DC2B8E238 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE2C9E7C1D77E57C5BF5751A /* Assets.xcassets */; };
 		8D7FA998026415DDE7FC580E /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A6A6B2690ABB749AAF8B8D /* Game.swift */; };
 		C588D0FB9025A853B1C3AB17 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7122C772CE17EFC346BE212 /* SetupView.swift */; };
+		C5C0BD02AE9DA1F4A1CD3210 /* HouseRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77266997765957BE400B03D4 /* HouseRulesView.swift */; };
+		D7FDDC24F1636634616C7FFA /* SettingControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7550E09D74D1436C2988CC0 /* SettingControls.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,7 @@
 		5D3661C4C46590C43853D3D6 /* RoundEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundEntryView.swift; sourceTree = "<group>"; };
 		66DB83689F212AB0D015D5AF /* ScoringSpades.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ScoringSpades.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		76E3BADA5097F66A989CAAD7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		77266997765957BE400B03D4 /* HouseRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseRulesView.swift; sourceTree = "<group>"; };
 		79A6A6B2690ABB749AAF8B8D /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
 		7C269B62C6394A6830F718EC /* InfoPages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoPages.swift; sourceTree = "<group>"; };
 		8C8D4A3FC5CAE21A2670CC5B /* GameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStore.swift; sourceTree = "<group>"; };
@@ -62,6 +65,7 @@
 		DE2C9E7C1D77E57C5BF5751A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ED8685CBFA83E7C3179173DB /* ScoringSpadesTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ScoringSpadesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F7122C772CE17EFC346BE212 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
+		F7550E09D74D1436C2988CC0 /* SettingControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingControls.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -69,9 +73,11 @@
 			isa = PBXGroup;
 			children = (
 				07A925AFAB759E3D4D5D1C53 /* GameOverView.swift */,
+				77266997765957BE400B03D4 /* HouseRulesView.swift */,
 				7C269B62C6394A6830F718EC /* InfoPages.swift */,
 				5D3661C4C46590C43853D3D6 /* RoundEntryView.swift */,
 				0260EC08D3526AEFD2E7FB4D /* ScoreboardView.swift */,
+				F7550E09D74D1436C2988CC0 /* SettingControls.swift */,
 				F7122C772CE17EFC346BE212 /* SetupView.swift */,
 			);
 			path = Views;
@@ -277,11 +283,13 @@
 				8D7FA998026415DDE7FC580E /* Game.swift in Sources */,
 				75D13B5540D57D1CBDFFA84B /* GameOverView.swift in Sources */,
 				46E5AD4BCA090F379145D707 /* GameStore.swift in Sources */,
+				C5C0BD02AE9DA1F4A1CD3210 /* HouseRulesView.swift in Sources */,
 				54731012FD5737BFC279C416 /* InfoPages.swift in Sources */,
 				7F5FBDC23AA66E597537E77B /* RoundDraft.swift in Sources */,
 				81A2E0B969A51DAD9D718450 /* RoundEntryView.swift in Sources */,
 				0E24A8B971AA4C0B70AD5246 /* ScoreboardView.swift in Sources */,
 				1B1756A03C0B5EB14DC6C414 /* ScoringSpadesApp.swift in Sources */,
+				D7FDDC24F1636634616C7FFA /* SettingControls.swift in Sources */,
 				C588D0FB9025A853B1C3AB17 /* SetupView.swift in Sources */,
 				4BE31E4C387AD05853417797 /* Theme.swift in Sources */,
 				24B93E3860E3DEB81837D590 /* Tips.swift in Sources */,

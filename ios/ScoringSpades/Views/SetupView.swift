@@ -3,41 +3,8 @@ import SwiftUI
 struct SetupView: View {
   @Environment(GameStore.self) private var store
   @FocusState private var focusedField: Field?
-  @State private var customPrompt: CustomValue?
-  @State private var customText = ""
 
   private enum Field: Hashable { case player(TeamID, Int) }
-
-  /// A setting that offers presets plus a typed-in custom value.
-  private enum CustomValue: Identifiable {
-    case target, nilPoints, blindNilPoints
-    var id: Self { self }
-
-    var prompt: String {
-      switch self {
-      case .target: "Target score?"
-      case .nilPoints: "Points for making nil?"
-      case .blindNilPoints: "Points for making blind nil?"
-      }
-    }
-
-    var keyPath: WritableKeyPath<Game, Int> {
-      switch self {
-      case .target: \.target
-      case .nilPoints: \.nilPoints
-      case .blindNilPoints: \.blindNilPoints
-      }
-    }
-
-    /// Accepted range. Without an upper bound a large value overflows the
-    /// scoring arithmetic and traps. Mirrors the prompts in public/index.html.
-    var allowed: ClosedRange<Int> {
-      switch self {
-      case .target: 1...Game.maxTarget
-      case .nilPoints, .blindNilPoints: 1...Game.maxPoints
-      }
-    }
-  }
 
   var body: some View {
     @Bindable var store = store
@@ -52,31 +19,44 @@ struct SetupView: View {
             teamFields(.team1, labels: ["Player 1", "Partner"])
             teamFields(.team2, labels: ["Player 3", "Partner"])
 
-            presetField("Play to", value: .target, presets: [250, 300, 500])
-            presetField("Nil is worth", value: .nilPoints, presets: [50, 100, 200],
-                        hint: "Points won or lost on a nil bid (standard is 100).")
-            presetField("Blind nil is worth", value: .blindNilPoints, presets: [100, 200, 400],
-                        hint: "Points won or lost on a blind nil bid (standard is 200).")
+            PresetPicker(title: "Play to", presets: [250, 300, 500], prompt: "Target score?",
+                         allowed: 1...Game.maxTarget, value: $store.game.target)
 
-            field("Nil partner's minimum bid",
-                  hint: "House rule: when a player bids nil, their partner must bid at least this much. \"None\" allows any bid.") {
-              HStack(spacing: 8) {
-                ForEach([0, 3, 4, 5], id: \.self) { value in
-                  ChoiceButton(title: value == 0 ? "None" : "\(value)",
-                               isSelected: store.game.nilPartnerMinBid == value) {
-                    store.game.nilPartnerMinBid = value
+            SettingField(title: "House rules") {
+              NavigationLink(value: Route.houseRules) {
+                HStack(spacing: 12) {
+                  VStack(alignment: .leading, spacing: 2) {
+                    Text("Nil values & partner minimum")
+                      .font(.body.weight(.semibold))
+                      .foregroundStyle(Theme.text)
+                    Text(store.game.houseRulesSummary)
+                      .font(.footnote)
+                      .foregroundStyle(Theme.muted)
                   }
+                  Spacer()
+                  Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.bold))
+                    .foregroundStyle(Theme.muted)
                 }
+                .padding(.vertical, 14)
+                .padding(.horizontal, 16)
+                .background(Theme.surface2, in: .rect(cornerRadius: 12))
+                .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.border, lineWidth: 2) }
+                .contentShape(.rect)
               }
+              .buttonStyle(PressableStyle())
+              .accessibilityLabel("House Rules")
+              .accessibilityValue(store.game.houseRulesSummary)
             }
 
-            field("Tips",
-                  hint: "Strategy tips appear under the scoreboard while you play — picked based on the game state (bags, sets, nils, score gap).") {
+            SettingField(title: "Tips",
+                         hint: "Strategy tips appear under the scoreboard while you play — picked based on the game state (bags, sets, nils, score gap).") {
               HStack(spacing: 8) {
                 ChoiceButton(title: "On", isSelected: store.tipsEnabled) { store.tipsEnabled = true }
                 ChoiceButton(title: "Off", isSelected: !store.tipsEnabled) { store.tipsEnabled = false }
               }
             }
+            .sensoryFeedback(.selection, trigger: store.tipsEnabled)
           }
         }
 
@@ -102,26 +82,6 @@ struct SetupView: View {
     .scrollDismissesKeyboard(.interactively)
     .background(Theme.background)
     .toolbar(.hidden, for: .navigationBar)
-    .sensoryFeedback(.selection, trigger: store.game.target)
-    .sensoryFeedback(.selection, trigger: store.game.nilPoints)
-    .sensoryFeedback(.selection, trigger: store.game.blindNilPoints)
-    .sensoryFeedback(.selection, trigger: store.game.nilPartnerMinBid)
-    .sensoryFeedback(.selection, trigger: store.tipsEnabled)
-    .alert(customPrompt?.prompt ?? "", isPresented: Binding(
-      get: { customPrompt != nil },
-      set: { if !$0 { customPrompt = nil } }
-    )) {
-      TextField("Points", text: $customText)
-        .keyboardType(.numberPad)
-      Button("Cancel", role: .cancel) {}
-      Button("OK") {
-        if let custom = customPrompt,
-           let n = Int(customText.trimmingCharacters(in: .whitespaces)),
-           custom.allowed.contains(n) {
-          store.game[keyPath: custom.keyPath] = n
-        }
-      }
-    }
   }
 
   // MARK: Pieces
@@ -170,37 +130,5 @@ struct SetupView: View {
     let order: [Field] = [.player(.team1, 0), .player(.team1, 1), .player(.team2, 0), .player(.team2, 1)]
     guard let index = order.firstIndex(of: .player(team, i)) else { return }
     focusedField = index + 1 < order.count ? order[index + 1] : nil
-  }
-
-  private func presetField(_ title: String, value: CustomValue, presets: [Int], hint: String? = nil) -> some View {
-    let current = store.game[keyPath: value.keyPath]
-    let isCustom = !presets.contains(current)
-    return field(title, hint: hint) {
-      HStack(spacing: 8) {
-        ForEach(presets, id: \.self) { preset in
-          ChoiceButton(title: "\(preset)", isSelected: current == preset) {
-            store.game[keyPath: value.keyPath] = preset
-          }
-        }
-        ChoiceButton(title: isCustom ? "\(current)" : "Custom", isSelected: isCustom) {
-          customText = "\(current)"
-          customPrompt = value
-        }
-        .accessibilityLabel(isCustom ? "Custom, \(current)" : "Custom")
-      }
-    }
-  }
-
-  private func field<Content: View>(_ title: String, hint: String? = nil, @ViewBuilder content: () -> Content) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      SectionLabel(title)
-      content()
-      if let hint {
-        Text(hint)
-          .font(.footnote)
-          .foregroundStyle(Theme.muted)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-    }
   }
 }
