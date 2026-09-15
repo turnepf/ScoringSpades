@@ -118,8 +118,12 @@ final class ScorekeeperFlowTests: XCTestCase {
   }
 
   private func dismissKeyboard() {
-    let done = app.buttons["Done"]
-    if done.exists { done.tap() } else if app.keyboards.count > 0 { web.staticTexts["Team 1"].tap() }
+    // iPhone: "Done" on the input accessory bar. iPad: the keyboard's hide key.
+    for label in ["Done", "Hide keyboard"] where app.buttons[label].exists {
+      app.buttons[label].tap()
+      break
+    }
+    XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
   }
 
   private func snapshot(_ name: String) {
