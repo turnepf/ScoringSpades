@@ -10,11 +10,15 @@ A clean, mobile-first scorekeeper for the card game Spades. Live at **[scoringsp
 - Round-by-round history with per-round deltas
 - Persists your game in `localStorage` — close the tab, come back, pick up where you left off
 - Configurable target score (250 / 300 / 500 / custom)
-- Installable to iOS home screen (PWA-style meta tags, safe-area handled)
+- Installable to iOS home screen (PWA-style meta tags, safe-area handled), plus a native iPhone & iPad app in `ios/`
 
 ## Tech
 
 A single `index.html` file (~50 KB). No build step, no dependencies, no framework. Vanilla JS with a tiny custom render helper. A companion `how-to-play.html` page covers the rules. Hosted as a Cloudflare Worker with the Static Assets binding; `_headers` sets the security headers (CSP, HSTS, etc.).
+
+## iPhone & iPad app
+
+`ios/` has a native app that bundles `public/` into a `WKWebView`, so it works offline and behaves the same as the website. See [ios/README.md](ios/README.md) to build, test, and release it.
 
 ## Run locally
 
