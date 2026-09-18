@@ -54,7 +54,11 @@ UserDefaults suite, so your real saved game is never touched.
 2. In Xcode, choose **Product → Archive**. In the Organizer, choose **Distribute App → App Store Connect → Upload**.
 3. In App Store Connect, add the build to a new version and submit it for review.
 
-## App Store listing (first submission)
+## App Store listing
+
+Live at <https://apps.apple.com/app/scoring-spades/id6812531693>.
+
+### First submission notes
 
 Create the app at [App Store Connect](https://appstoreconnect.apple.com) →
 Apps → **+ New App**: platform iOS, name **Scoring Spades**, bundle ID
