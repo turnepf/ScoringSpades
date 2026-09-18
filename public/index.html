@@ -110,6 +110,24 @@
   }
   .icon-btn:active { background: var(--surface-2); }
 
+  .app-link-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .app-link-btn:active { background: var(--surface-2); }
+
   /* ── Setup ─────────────────────────────── */
   .card {
     background: var(--surface);
@@ -1143,15 +1161,30 @@ function el(tag, attrs, ...children) {
 }
 
 const GITHUB_URL = 'https://github.com/turnepf/ScoringSpades';
-const IOS_APP_URL = 'https://apps.apple.com/app/scoring-spades/id6812531693';
+
+// Universal Link path — opens the native app directly if it's installed
+// (once the iOS app ships the matching Associated Domains entitlement),
+// otherwise falls through to the App Store via the /app redirect.
+const APP_LINK_URL = '/app';
+
+function isApplePlatform() {
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/.test(ua)) return true;
+  // iPadOS 13+ reports a desktop Mac user agent; touch support gives it away.
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
+const APPLE_DEVICE = isApplePlatform();
+
+function appLinkButton(location) {
+  return el('a', { class: 'app-link-btn', href: APP_LINK_URL,
+    onClick: () => track('ios_app_click', { location })
+  }, 'Get App');
+}
 
 function siteFooter(location) {
   return el('div', { class: 'footer-links' },
     el('a', { class: 'footer-link', href: '/how-to-play' }, 'How to Play'),
     el('a', { class: 'footer-link', href: '/privacy' }, 'Privacy'),
-    el('a', { class: 'footer-link', href: IOS_APP_URL, target: '_blank', rel: 'noopener',
-      onClick: () => track('ios_app_click', { location: location || 'footer' })
-    }, 'Get the iOS app'),
     el('a', { class: 'footer-link', href: GITHUB_URL, target: '_blank', rel: 'noopener',
       onClick: () => track('github_click', { location: location || 'footer' })
     }, 'Launch your own ScoringSpades app')
@@ -1165,7 +1198,12 @@ function header(rightBtns = []) {
       'Scoring Spades',
       state.phase === 'playing' && el('span', { class: 'title-target' }, `to ${state.target}`)
     ),
-    el('div', { style: 'display:flex; gap:8px;' }, ...rightBtns)
+    el('div', { style: 'display:flex; gap:8px; align-items:center;' },
+      // Skipped mid-game: title + target + this button + the settings gear
+      // don't fit on one row on typical phone widths.
+      APPLE_DEVICE && state.phase !== 'playing' && appLinkButton('header'),
+      ...rightBtns
+    )
   );
 }
 

@@ -30,7 +30,7 @@ A scoring app for the card game Spades. Single-page web app at scoringspades.com
 
 ### Deploy
 
-**Automatic:** `.github/workflows/deploy.yml` runs `wrangler deploy` (via `cloudflare/wrangler-action`) on every push to `main` that touches `public/**` or `wrangler.jsonc`, using the `CLOUDFLARE_API_TOKEN` repo secret (Workers Scripts:Edit scope) — no manual step needed once a PR merges. `workflow_dispatch` is also enabled for a manual re-run from the Actions tab.
+**Automatic:** Cloudflare's own Git integration (Workers Builds) is connected to this repo and deploys `main` to production on every push — confirmed working September 2026, no GitHub Actions or repo secrets involved. Non-`main` branches/PRs get their own preview URLs (`cloudflare-workers-and-pages[bot]` comments them on the PR) without touching production. A GitHub Actions `wrangler-action` workflow was tried first but turned out redundant to this and was removed.
 
 **Manual fallback:** `wrangler.jsonc` lives at the repo root (added by Cloudflare's GitHub auto-config bot in PR #1, April 2026), so deploy is one command from the project root:
 
@@ -50,7 +50,7 @@ Auth: already logged in as patrick@patrickturner.net via `wrangler` OAuth. Verif
 
 Why this exists: an earlier deploy used `assets.directory: "."` (the value Cloudflare's auto-config bot wrote in PR #1) and ended up shipping `.git/objects/...`, `.wrangler/cache/...`, and the markdown files as 200-OK assets. Restructured into `public/` to make that impossible.
 
-**The deployable files:** `index.html`, `how-to-play.html`, `config.js`, `manifest.json`, `icon.svg`, `_headers`. If you add a new asset (e.g., a sound effect, an image, a privacy.html), drop it inside `public/` or the deploy won't include it.
+**The deployable files:** `index.html`, `how-to-play.html`, `privacy.html`, `config.js`, `manifest.json`, `icon.svg`, `_headers`, `_redirects`, `.well-known/apple-app-site-association`. If you add a new asset (e.g., a sound effect, an image), drop it inside `public/` or the deploy won't include it.
 
 ### Notes & gotchas
 
@@ -61,6 +61,12 @@ Why this exists: an earlier deploy used `assets.directory: "."` (the value Cloud
 ### CSP / security headers
 
 Production headers come from `_headers`. CSP allowlists `googletagmanager.com` + `google-analytics.com` for gtag. If you add any new third-party script (Stripe, Cloudflare Turnstile, Sentry, etc.), update `script-src` and likely `connect-src` in `_headers` or the page will silently break with CSP violations in the browser console.
+
+### "Get the App" header button + iOS Universal Link
+
+On Apple devices (iPhone, or iPad — detected via `isApplePlatform()`, since iPadOS 13+ reports a desktop Mac user agent), the header shows a **Get the App** button next to the title, on every screen (setup/playing/gameover). It links to `/app`, which `_redirects` 302s to the App Store listing.
+
+`/app` doubles as a Universal Link path: `public/.well-known/apple-app-site-association` declares it under the app's `NQ6AJVVBBJ.com.scoringspades.app` App ID, and `ios/project.yml` requests the matching `com.apple.developer.associated-domains: applinks:scoringspades.com` entitlement. Once that's live, tapping the header button on a device with the app installed opens the app directly (System intercepts before any network request); without the app, it falls through to the redirect. **This entitlement only takes effect once Patrick regenerates the Xcode project (`cd ios && xcodegen`), rebuilds, and ships a new App Store version** — until then the button always behaves like today (opens the App Store page, which itself shows "OPEN" instead of "GET" if already installed).
 
 ## iOS app (`ios/`)
 
@@ -74,7 +80,7 @@ Production headers come from `_headers`. CSP allowlists `googletagmanager.com` +
 
 ## GitHub
 
-Repo: `turnepf/ScoringSpades` on GitHub. `gh` CLI is authenticated as `turnepf`. Push with `git push` — merges to `main` auto-deploy via `.github/workflows/deploy.yml` (see Deploy section above).
+Repo: `turnepf/ScoringSpades` on GitHub. `gh` CLI is authenticated as `turnepf`. Push with `git push` — merges to `main` auto-deploy via Cloudflare's Git integration (see Deploy section above).
 
 ## Monetization
 
