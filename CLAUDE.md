@@ -30,7 +30,9 @@ A scoring app for the card game Spades. Single-page web app at scoringspades.com
 
 ### Deploy
 
-`wrangler.jsonc` lives at the repo root (added by Cloudflare's GitHub auto-config bot in PR #1, April 2026), so deploy is one command from the project root:
+**Automatic:** `.github/workflows/deploy.yml` runs `wrangler deploy` (via `cloudflare/wrangler-action`) on every push to `main` that touches `public/**` or `wrangler.jsonc`, using the `CLOUDFLARE_API_TOKEN` repo secret (Workers Scripts:Edit scope) — no manual step needed once a PR merges. `workflow_dispatch` is also enabled for a manual re-run from the Actions tab.
+
+**Manual fallback:** `wrangler.jsonc` lives at the repo root (added by Cloudflare's GitHub auto-config bot in PR #1, April 2026), so deploy is one command from the project root:
 
 ```
 cd ~/ScoringSpades
@@ -72,7 +74,7 @@ Production headers come from `_headers`. CSP allowlists `googletagmanager.com` +
 
 ## GitHub
 
-Repo: `turnepf/ScoringSpades` on GitHub. `gh` CLI is authenticated as `turnepf`. Push with `git push` — no CI/CD hook to Cloudflare yet, so deploys are still manual.
+Repo: `turnepf/ScoringSpades` on GitHub. `gh` CLI is authenticated as `turnepf`. Push with `git push` — merges to `main` auto-deploy via `.github/workflows/deploy.yml` (see Deploy section above).
 
 ## Monetization
 
