@@ -1143,11 +1143,15 @@ function el(tag, attrs, ...children) {
 }
 
 const GITHUB_URL = 'https://github.com/turnepf/ScoringSpades';
+const IOS_APP_URL = 'https://apps.apple.com/app/scoring-spades/id6812531693';
 
 function siteFooter(location) {
   return el('div', { class: 'footer-links' },
     el('a', { class: 'footer-link', href: '/how-to-play' }, 'How to Play'),
     el('a', { class: 'footer-link', href: '/privacy' }, 'Privacy'),
+    el('a', { class: 'footer-link', href: IOS_APP_URL, target: '_blank', rel: 'noopener',
+      onClick: () => track('ios_app_click', { location: location || 'footer' })
+    }, 'Get the iOS app'),
     el('a', { class: 'footer-link', href: GITHUB_URL, target: '_blank', rel: 'noopener',
       onClick: () => track('github_click', { location: location || 'footer' })
     }, 'Launch your own ScoringSpades app')
