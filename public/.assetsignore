@@ -1,0 +1,9 @@
+# Workers Static Assets honours this at upload time, regardless of git state.
+# The uploader walks the filesystem, not the git index, so a gitignored-but-
+# present file here would still be published.
+.DS_Store
+*.swp
+*.swo
+*~
+*.bak
+Thumbs.db

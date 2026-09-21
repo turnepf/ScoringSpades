@@ -7,7 +7,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0f1f1a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#eef3ee" media="(prefers-color-scheme: light)">
-<meta name="google-adsense-account" content="ca-pub-3750434343270810">
 <link rel="manifest" href="/manifest.json">
 <title>Scoring Spades</title>
 <script src="config.js"></script>
@@ -871,6 +870,17 @@ const STORAGE_KEY = 'spades-state-v1';
 const LAST_PLAYERS_KEY = 'spades-players-v1';
 const TIPS_PREF_KEY = 'spades-tips-enabled';
 
+// Bounds used when re-admitting a saved game and when accepting custom numbers.
+// Keep these in step with Game.normalized() in ios/ScoringSpades/Model/Game.swift.
+const TRICKS_PER_HAND = 13;
+const BAGS_PER_PENALTY = 10;
+const MAX_POINTS = 10000;   // nil / blind-nil values
+const MAX_TARGET = 100000;
+const MAX_SCORE = 1000000;
+const MAX_NAME_LEN = 15;
+
+const inRange = (n, lo, hi) => typeof n === 'number' && Number.isFinite(n) && n >= lo && n <= hi;
+
 let tipsEnabled = (() => {
   try { return localStorage.getItem(TIPS_PREF_KEY) !== 'off'; }
   catch { return true; }
@@ -891,6 +901,8 @@ function loadLastPlayers() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed?.team1) || !Array.isArray(parsed?.team2)) return null;
+    if (parsed.team1.length !== 2 || parsed.team2.length !== 2) return null;
+    if (![...parsed.team1, ...parsed.team2].every(p => typeof p === 'string')) return null;
     return parsed;
   } catch { return null; }
 }
@@ -957,7 +969,7 @@ const SPADES_TIPS = [
     when: s => nearWinLowBags(s) },
 ];
 
-function lastRound(s) { return s.rounds[s.rounds.length - 1]; }
+function lastRound(s) { return Array.isArray(s.rounds) ? s.rounds[s.rounds.length - 1] : undefined; }
 function lastRoundSet(s) {
   const r = lastRound(s); if (!r) return false;
   return r.team1.delta < 0 || r.team2.delta < 0;
@@ -984,7 +996,8 @@ function pickTip() {
   const conditional = [], unconditional = [];
   for (let i = 0; i < SPADES_TIPS.length; i++) {
     const t = SPADES_TIPS[i];
-    if (t.when) { if (t.when(state)) conditional.push(i); }
+    // A tip predicate must never be able to stop the app from rendering.
+    if (t.when) { try { if (t.when(state)) conditional.push(i); } catch {} }
     else { unconditional.push(i); }
   }
   const pool = conditional.length > 0 ? conditional : unconditional;
@@ -1003,19 +1016,37 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return newGameState();
     const parsed = JSON.parse(raw);
-    if (!parsed || !parsed.team1) return newGameState();
+    if (!parsed || !parsed.team1 || !parsed.team2) return newGameState();
     // Older saved states predate these house-rule settings.
-    if (typeof parsed.nilPoints !== 'number' || parsed.nilPoints <= 0) parsed.nilPoints = 100;
+    if (!inRange(parsed.nilPoints, 1, MAX_POINTS)) parsed.nilPoints = 100;
     // Saves that predate a separate blind value used 2 × nil.
-    if (typeof parsed.blindNilPoints !== 'number' || parsed.blindNilPoints <= 0) parsed.blindNilPoints = parsed.nilPoints * 2;
-    if (typeof parsed.nilPartnerMinBid !== 'number' || parsed.nilPartnerMinBid < 0) parsed.nilPartnerMinBid = 0;
+    if (!inRange(parsed.blindNilPoints, 1, MAX_POINTS)) parsed.blindNilPoints = parsed.nilPoints * 2;
+    if (!inRange(parsed.nilPartnerMinBid, 0, TRICKS_PER_HAND)) parsed.nilPartnerMinBid = 0;
+    if (!inRange(parsed.target, 1, MAX_TARGET)) parsed.target = 500;
+    if (!['setup', 'playing', 'gameover'].includes(parsed.phase)) parsed.phase = 'setup';
     for (const t of [parsed.team1, parsed.team2]) {
-      if (Array.isArray(t.players)) {
-        t.players = t.players.map(p => LEGACY_DEFAULTS.has(p) ? '' : (p || ''));
-      } else {
-        t.players = ['', ''];
-      }
+      // Pad-then-trim so a short, empty or over-long array lands on exactly two.
+      const src = Array.isArray(t.players) ? t.players : [];
+      t.players = [0, 1].map(i => {
+        const p = typeof src[i] === 'string' ? src[i] : '';
+        return LEGACY_DEFAULTS.has(p) ? '' : p.slice(0, MAX_NAME_LEN);
+      });
+      if (!inRange(t.score, -MAX_SCORE, MAX_SCORE)) t.score = 0;
+      if (!inRange(t.bags, 0, BAGS_PER_PENALTY - 1)) t.bags = 0;
     }
+    // Every consumer of `rounds` assumes an array of well-shaped rounds.
+    parsed.rounds = (Array.isArray(parsed.rounds) ? parsed.rounds : [])
+      .filter(r => r && r.team1 && r.team2)
+      .map(r => {
+        for (const key of ['team1', 'team2']) {
+          const tr = r[key];
+          if (!inRange(tr.delta, -MAX_SCORE, MAX_SCORE)) tr.delta = 0;
+          if (!inRange(tr.bagsAdded, 0, TRICKS_PER_HAND)) tr.bagsAdded = 0;
+          if (!inRange(tr.bagPenalty, 0, MAX_SCORE)) tr.bagPenalty = 0;
+          if (!Array.isArray(tr.nils)) tr.nils = [];
+        }
+        return r;
+      });
     return parsed;
   } catch { return newGameState(); }
 }
@@ -1116,10 +1147,8 @@ function undoLastRound() {
   if (!last) return;
   state.team1.score -= last.team1.delta;
   state.team2.score -= last.team2.delta;
-  // restore bags: subtract this round's bags, add back any penalty bags
-  state.team1.bags = ((state.team1.bags - last.team1.bagsAdded) + (last.team1.bagPenalty / 100) * 10 + 100) % 10;
-  state.team2.bags = ((state.team2.bags - last.team2.bagsAdded) + (last.team2.bagPenalty / 100) * 10 + 100) % 10;
-  // simpler: recompute bags from scratch
+  // Bags are re-derived from the surviving history, which is exact because every
+  // committed round stores its own post-penalty bagsAdded.
   recomputeBagsFromHistory();
   if (state.phase === 'gameover') state.phase = 'playing';
   pickTip();
@@ -1243,7 +1272,7 @@ function renderSetup() {
                 if (isCustom) {
                   const v = prompt('Target score?', state.target);
                   const n = parseInt(v, 10);
-                  if (n && n > 0) { state.target = n; saveState(); render(); }
+                  if (inRange(n, 1, MAX_TARGET)) { state.target = n; saveState(); render(); }
                 } else {
                   state.target = t; saveState(); render();
                 }
@@ -1319,7 +1348,7 @@ function pointsChipField(label, key, presets, promptText, hint) {
             if (isCustom) {
               const raw = prompt(promptText, state[key]);
               const n = parseInt(raw, 10);
-              if (n && n > 0) { state[key] = n; saveState(); render(); }
+              if (inRange(n, 1, MAX_POINTS)) { state[key] = n; saveState(); render(); }
             } else {
               state[key] = v; saveState(); render();
             }
@@ -1341,7 +1370,7 @@ function playerInput(teamKey, idx, label) {
     el('div', { class: 'sub-label' }, label),
     el('input', {
       class: 'input', type: 'text', value: state[teamKey].players[idx],
-      maxlength: '15', autocapitalize: 'words', autocomplete: 'off',
+      maxlength: String(MAX_NAME_LEN), autocapitalize: 'words', autocomplete: 'off',
       onInput: e => { state[teamKey].players[idx] = e.target.value; saveState(); }
     })
   );
@@ -1586,6 +1615,8 @@ function playerBidBlock(team, dt, playerIdx, teamColor) {
         partner.bid < state.nilPartnerMinBid) {
       partner.bid = null;
     }
+    // Keep nil answers in step with who is actually on nil.
+    if (v !== 'nil' && v !== 'blind') dt.nilMade[playerIdx] = null;
     render();
   };
   return el('div', { class: 'player-bid' },
@@ -1834,9 +1865,9 @@ function render() {
     if (modal.kind === 'bid') renderBidModal();
     else if (modal.kind === 'tricks') renderTricksModal();
     else if (modal.kind === 'preview') renderPreviewModal();
-  } else if (state.phase === 'setup') renderSetup();
-  else if (state.phase === 'playing') renderGame();
+  } else if (state.phase === 'playing') renderGame();
   else if (state.phase === 'gameover') renderGameOver();
+  else renderSetup(); // unknown phase falls back to setup rather than a blank page
 
   const newModal = app.querySelector('.modal');
   if (newModal && prevWasModal) newModal.scrollTop = prevScroll;
