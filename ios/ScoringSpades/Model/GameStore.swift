@@ -31,7 +31,9 @@ final class GameStore {
 
   init(defaults: UserDefaults = .standard) {
     self.defaults = defaults
-    let saved = defaults.data(forKey: Key.game).flatMap { try? JSONDecoder().decode(Game.self, from: $0) }
+    let saved = defaults.data(forKey: Key.game)
+      .flatMap { try? JSONDecoder().decode(Game.self, from: $0) }?
+      .normalized()
     let game = saved ?? Game.new(players: Self.lastPlayers(in: defaults))
     self.game = game
     self.tipsEnabled = defaults.object(forKey: Key.tipsEnabled) as? Bool ?? true

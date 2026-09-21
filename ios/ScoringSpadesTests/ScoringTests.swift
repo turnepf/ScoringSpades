@@ -159,3 +159,119 @@ final class TipsTests: XCTestCase {
     }
   }
 }
+
+/// `JSONDecoder` enforces types but not ranges, array lengths or invariants, and
+/// Swift traps where JS coerces. These pin the repairs in `Game.normalized()` and
+/// keep them matched to `loadState()` in public/index.html.
+final class NormalizationTests: XCTestCase {
+
+  // MARK: Player array length
+
+  func testLabelIsTotalForShortPlayerArrays() {
+    // Team.label used to subscript players[0] and players[1] unconditionally.
+    XCTAssertEqual(Team(players: []).label, "Team")
+    XCTAssertEqual(Team(players: ["Solo"]).label, "Solo")
+  }
+
+  func testNormalizePinsPlayersToExactlyTwo() {
+    var game = Game()
+    game.team1.players = []
+    game.team2.players = ["A", "B", "C"]
+    let g = game.normalized()
+    XCTAssertEqual(g.team1.players, ["", ""])
+    XCTAssertEqual(g.team2.players, ["A", "B"])
+  }
+
+  func testNormalizeCapsNameLength() {
+    var game = Game()
+    game.team1.players = [String(repeating: "x", count: 50), "Dee"]
+    XCTAssertEqual(game.normalized().team1.players[0].count, Game.maxNameLength)
+  }
+
+  // MARK: House-rule values — fallbacks must match the web
+
+  func testNormalizeRepairsHouseRuleValuesLikeTheWeb() {
+    var game = Game()
+    game.nilPoints = 0           // web: non-number or <= 0 -> 100
+    game.blindNilPoints = -1     // web: non-number or <= 0 -> nilPoints * 2
+    game.nilPartnerMinBid = -5   // web: < 0 -> 0
+    let g = game.normalized()
+    XCTAssertEqual(g.nilPoints, 100)
+    XCTAssertEqual(g.blindNilPoints, 200)
+    XCTAssertEqual(g.nilPartnerMinBid, 0)
+  }
+
+  func testNormalizeRejectsOutOfRangeTargetAndPoints() {
+    var game = Game()
+    game.target = Int.max
+    game.nilPoints = Int.max
+    let g = game.normalized()
+    XCTAssertEqual(g.target, 500)
+    XCTAssertEqual(g.nilPoints, 100)
+  }
+
+  func testNormalizeClampsNilPartnerMinBidToHandSize() {
+    var game = Game()
+    game.nilPartnerMinBid = 99   // above 13 makes the bid step unsatisfiable
+    XCTAssertEqual(game.normalized().nilPartnerMinBid, 0)
+  }
+
+  // MARK: Arithmetic totality
+
+  func testExtremeScoresDoNotTrapScoringOrTips() {
+    var game = Game()
+    game.team1.score = Int.max
+    game.team2.score = Int.min
+    game.team1.bags = Int.max
+    let g = game.normalized()
+    XCTAssertEqual(g.team1.score, 0)
+    XCTAssertEqual(g.team2.score, 0)
+    XCTAssertEqual(g.team1.bags, 0)
+    // Tips predicates subtract scores; these used to overflow and trap.
+    XCTAssertNoThrow(Tips.pick(for: g, current: nil))
+  }
+
+  func testUndoWithExtremeDeltaDoesNotTrap() {
+    var game = Game()
+    game.phase = .playing
+    var tr = TeamRound(bid: 4, tricks: 4, nils: [])
+    tr.delta = Int.min
+    game.rounds = [Round(team1: tr, team2: tr)]
+    var g = game.normalized()
+    XCTAssertEqual(g.rounds[0].team1.delta, 0)
+    g.undoLastRound()
+    XCTAssertEqual(g.rounds.count, 0)
+  }
+
+  func testNormalizeDropsOutOfRangeNilPlayerIndex() {
+    var game = Game()
+    var tr = TeamRound(bid: 4, tricks: 4, nils: [
+      NilResult(playerIndex: 0, kind: .nilBid, made: true),
+      NilResult(playerIndex: 99, kind: .nilBid, made: false),
+    ])
+    tr.delta = 0
+    game.rounds = [Round(team1: tr, team2: tr)]
+    let g = game.normalized()
+    XCTAssertEqual(g.rounds[0].team1.nils.map(\.playerIndex), [0])
+  }
+
+  // MARK: Display
+
+  func testSignedStringIsTotalOverIntMin() {
+    // `-Int.min` is not representable and used to trap.
+    XCTAssertEqual(Int.min.signedString, "−9223372036854775808")
+    XCTAssertEqual((-40).signedString, "−40")
+    XCTAssertEqual(70.signedString, "+70")
+    XCTAssertEqual(0.signedString, "+0")
+  }
+
+  // MARK: A valid game is left alone
+
+  func testNormalizeIsIdentityOnAValidGame() {
+    var game = Game.new(players: nil)
+    game.team1.players = ["Patrick", "Dee"]
+    game.team2.players = ["Marcus", "Linda"]
+    game.phase = .playing
+    XCTAssertEqual(game.normalized(), game)
+  }
+}

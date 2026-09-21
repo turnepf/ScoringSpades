@@ -28,6 +28,15 @@ struct SetupView: View {
       case .blindNilPoints: \.blindNilPoints
       }
     }
+
+    /// Accepted range. Without an upper bound a large value overflows the
+    /// scoring arithmetic and traps. Mirrors the prompts in public/index.html.
+    var allowed: ClosedRange<Int> {
+      switch self {
+      case .target: 1...Game.maxTarget
+      case .nilPoints, .blindNilPoints: 1...Game.maxPoints
+      }
+    }
   }
 
   var body: some View {
@@ -106,7 +115,9 @@ struct SetupView: View {
         .keyboardType(.numberPad)
       Button("Cancel", role: .cancel) {}
       Button("OK") {
-        if let custom = customPrompt, let n = Int(customText.trimmingCharacters(in: .whitespaces)), n > 0 {
+        if let custom = customPrompt,
+           let n = Int(customText.trimmingCharacters(in: .whitespaces)),
+           custom.allowed.contains(n) {
           store.game[keyPath: custom.keyPath] = n
         }
       }

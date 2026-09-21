@@ -26,9 +26,14 @@ struct Team: Codable, Equatable {
   var bags = 0
   var players = ["", ""]
 
+  /// Name at `index`, or "" — total, so a short array can never trap a view.
+  func name(at index: Int) -> String {
+    players.indices.contains(index) ? players[index] : ""
+  }
+
   /// "Patrick & Dee", falling back to whichever name exists, then "Team".
   var label: String {
-    let a = players[0], b = players[1]
+    let a = name(at: 0), b = name(at: 1)
     if !a.isEmpty && !b.isEmpty { return "\(a) & \(b)" }
     return a.isEmpty ? (b.isEmpty ? "Team" : b) : a
   }
@@ -98,6 +103,60 @@ struct Game: Codable, Equatable {
   }
 
   func points(for kind: NilKind) -> Int { kind == .blind ? blindNilPoints : nilPoints }
+}
+
+// MARK: - Post-decode normalization
+
+extension Game {
+  // Bounds mirror loadState() in public/index.html. Keep the two in step.
+  static let maxPoints = 10_000      // nil / blind-nil values
+  static let maxTarget = 100_000
+  static let maxScore = 1_000_000
+  static let maxNameLength = 15
+  static let maxRounds = 1_000
+
+  /// JSONDecoder checks types but not ranges, lengths or invariants. Every
+  /// consumer (Team.label, Tips predicates, the scoring arithmetic, the round
+  /// history views) assumes bounds that nothing else establishes, and Swift
+  /// traps rather than coercing, so a hand-edited blob would crash the app.
+  /// Apply this once at the decode site.
+  func normalized() -> Game {
+    var g = self
+    g.target = Self.clamp(target, 1, Self.maxTarget, fallback: 500)
+    g.nilPoints = Self.clamp(nilPoints, 1, Self.maxPoints, fallback: 100)
+    g.blindNilPoints = Self.clamp(blindNilPoints, 1, Self.maxPoints, fallback: g.nilPoints * 2)
+    g.nilPartnerMinBid = Self.clamp(nilPartnerMinBid, 0, Self.tricksPerHand, fallback: 0)
+
+    for id in TeamID.allCases {
+      var t = g[id]
+      // Pad-then-trim so short, empty and over-long arrays all land on exactly two.
+      t.players = (0..<2).map { String(t.name(at: $0).prefix(Self.maxNameLength)) }
+      t.score = Self.clamp(t.score, -Self.maxScore, Self.maxScore, fallback: 0)
+      t.bags = Self.clamp(t.bags, 0, Self.bagsPerPenalty - 1, fallback: 0)
+      g[id] = t
+    }
+
+    g.rounds = g.rounds.prefix(Self.maxRounds).map { round in
+      var r = round
+      for id in TeamID.allCases {
+        var tr = r[id]
+        tr.bid = Self.clamp(tr.bid, 0, 2 * Self.tricksPerHand, fallback: 0)
+        tr.tricks = Self.clamp(tr.tricks, 0, Self.tricksPerHand, fallback: 0)
+        tr.delta = Self.clamp(tr.delta, -Self.maxScore, Self.maxScore, fallback: 0)
+        tr.bagsAdded = Self.clamp(tr.bagsAdded, 0, Self.tricksPerHand, fallback: 0)
+        tr.bagPenalty = Self.clamp(tr.bagPenalty, 0, Self.maxScore, fallback: 0)
+        tr.nils = tr.nils.prefix(2).filter { (0...1).contains($0.playerIndex) }
+        r[id] = tr
+      }
+      return r
+    }
+    return g
+  }
+
+  private static func clamp(_ value: Int, _ lo: Int, _ hi: Int, fallback: Int) -> Int {
+    guard value >= lo, value <= hi else { return min(max(fallback, lo), hi) }
+    return value
+  }
 }
 
 // MARK: - Scoring

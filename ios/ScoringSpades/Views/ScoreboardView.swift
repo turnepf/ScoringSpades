@@ -248,5 +248,6 @@ struct TipCard: View {
 
 extension Int {
   /// "+70" / "−40"
-  var signedString: String { self >= 0 ? "+\(self)" : "−\(-self)" }
+  /// `magnitude` is a UInt, so this is total — `-Int.min` would trap.
+  var signedString: String { self >= 0 ? "+\(self)" : "−\(magnitude)" }
 }

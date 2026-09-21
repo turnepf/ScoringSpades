@@ -2,7 +2,9 @@
 
 A fully native SwiftUI app. It has the same rules, settings, and features as
 scoringspades.com, reimplemented in Swift. No web views. It works offline,
-collects nothing, and never touches the network.
+collects nothing, and makes no network requests of its own. (Tapping a link
+opens it in Safari, and iOS itself fetches the Universal Link association
+file at install — neither sends anything about you.)
 
 ## Layout
 
