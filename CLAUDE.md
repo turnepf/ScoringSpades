@@ -30,7 +30,9 @@ A scoring app for the card game Spades. Single-page web app at scoringspades.com
 
 ### Deploy
 
-**Automatic:** Cloudflare's own Git integration (Workers Builds) is connected to this repo and deploys `main` to production on every push — confirmed working September 2026, no GitHub Actions or repo secrets involved. Non-`main` branches/PRs get their own preview URLs (`cloudflare-workers-and-pages[bot]` comments them on the PR) without touching production. A GitHub Actions `wrangler-action` workflow was tried first but turned out redundant to this and was removed.
+**Automatic:** Cloudflare's own Git integration (Workers Builds) is connected to this repo and deploys `main` to production on every push — confirmed working September 2026, no GitHub Actions or repo secrets involved. A GitHub Actions `wrangler-action` workflow was tried first but turned out redundant to this and was removed.
+
+**Preview builds are OFF** (disabled September 2026). Non-`main` branches and PRs no longer get preview URLs. This was deliberate: the repo is public and MIT-licensed and actively invites forks, and with previews on, a pull request from a *forked* repo could publish unreviewed contributor content to a public `*.workers.dev` URL under this Cloudflare account before anyone reviewed it. The toggle is all-or-nothing, so this also removes preview URLs for your own branches — check branches locally instead (`open public/index.html`, or serve `public/` with any static server). Re-enable at Settings → Build → **Enable Preview builds** if that trade stops being worth it.
 
 > **The build runs on a Cloudflare *user API token* that you select.** Dashboard → Workers & Pages → `scoringspades` → Settings → Build → Connect repository → **Advanced settings → API token**. Nothing in this repo references it, which makes it easy to mistake for an unused credential.
 >
