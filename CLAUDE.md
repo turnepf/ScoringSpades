@@ -32,6 +32,12 @@ A scoring app for the card game Spades. Single-page web app at scoringspades.com
 
 **Automatic:** Cloudflare's own Git integration (Workers Builds) is connected to this repo and deploys `main` to production on every push — confirmed working September 2026, no GitHub Actions or repo secrets involved. Non-`main` branches/PRs get their own preview URLs (`cloudflare-workers-and-pages[bot]` comments them on the PR) without touching production. A GitHub Actions `wrangler-action` workflow was tried first but turned out redundant to this and was removed.
 
+> **The build runs on a Cloudflare *user API token* that you select.** Dashboard → Workers & Pages → `scoringspades` → Settings → Build → Connect repository → **Advanced settings → API token**. Nothing in this repo references it, which makes it easy to mistake for an unused credential.
+>
+> **Do not judge whether a Cloudflare API token is in use by its "Last used" column** — it does not record Workers Builds' use of the token. In September 2026 a token named `scoringspades build token` was deleted after two production deploys left its last-used date unchanged, which looked like proof it was dead. The next push failed to build. The `<project> build token` naming pattern is Cloudflare's auto-generated convention and is the real signal that a token backs a Git integration. To check which token the build uses, read it from the Build settings dialog.
+>
+> If builds ever start failing with an auth error, that dropdown is the first place to look. `wrangler deploy` from your Mac is unaffected either way — local wrangler authenticates via OAuth, not an API token.
+
 **Manual fallback:** `wrangler.jsonc` lives at the repo root (added by Cloudflare's GitHub auto-config bot in PR #1, April 2026), so deploy is one command from the project root:
 
 ```
