@@ -35,50 +35,38 @@ struct ScoreboardView: View {
   var body: some View {
     let game = store.game
 
-    ScrollView {
-      VStack(spacing: 16) {
-        HStack {
-          AppTitle(subtitle: "to \(game.target)")
-          Spacer()
-          Button {
-            confirming = .setup
-          } label: {
-            Image(systemName: "gearshape.fill")
-              .font(.title3)
-              .foregroundStyle(Theme.text)
-              .frame(width: 44, height: 44)
-              .background(Theme.surface, in: .rect(cornerRadius: 12))
-              .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.border) }
-          }
-          .accessibilityLabel("Settings")
-        }
-
-        HStack(spacing: 12) {
-          ScoreCard(team: .team1, isHighlighted: game.leader == .team1)
-          ScoreCard(team: .team2, isHighlighted: game.leader == .team2)
-        }
-
-        PrimaryButton("Score Round \(game.rounds.count + 1)") {
-          draft = RoundDraft(nilPartnerMinBid: game.nilPartnerMinBid)
-        }
-
-        HistoryCard()
-
-        HStack(spacing: 8) {
-          GhostButton("Undo last") { confirming = .undo }
-            .disabled(game.rounds.isEmpty)
-          GhostButton("End game") { confirming = .end }
-        }
-
-        if !game.rounds.isEmpty && store.tipsEnabled {
-          TipCard(text: store.tipText)
-        }
+    AdaptiveSplit {
+      HStack(spacing: 12) {
+        ScoreCard(team: .team1, isHighlighted: game.leader == .team1)
+        ScoreCard(team: .team2, isHighlighted: game.leader == .team2)
       }
-      .screenLayout()
-      .padding(.vertical, 16)
+
+      PrimaryButton("Score Round \(game.rounds.count + 1)") {
+        draft = RoundDraft(nilPartnerMinBid: game.nilPartnerMinBid)
+      }
+
+      HStack(spacing: 8) {
+        GhostButton("Undo last") { confirming = .undo }
+          .disabled(game.rounds.isEmpty)
+        GhostButton("End game") { confirming = .end }
+      }
+
+      if !game.rounds.isEmpty && store.tipsEnabled {
+        TipCard(text: store.tipText)
+      }
+    } secondary: {
+      HistoryCard()
     }
     .background(Theme.background)
-    .toolbar(.hidden, for: .navigationBar)
+    .navigationTitle("Scoring Spades")
+    .navigationSubtitleIfAvailable("Playing to \(game.target)")
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbarBackground(Theme.background, for: .navigationBar)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button { confirming = .setup } label: { Label("Setup", systemImage: "gearshape") }
+      }
+    }
     .fullScreenCover(item: $draft) { draft in
       RoundEntryView(draft: draft)
     }
@@ -162,6 +150,7 @@ struct ScoreCard: View {
 
 struct HistoryCard: View {
   @Environment(GameStore.self) private var store
+  @ScaledMetric(relativeTo: .footnote) private var roundColumnWidth: CGFloat = 50
 
   var body: some View {
     let game = store.game
@@ -199,7 +188,7 @@ struct HistoryCard: View {
 
   private func row<A: View, B: View, C: View>(round: A, team1: B, team2: C) -> some View {
     HStack(spacing: 8) {
-      round.frame(width: 50, alignment: .leading)
+      round.frame(width: roundColumnWidth, alignment: .leading)
       team1.frame(maxWidth: .infinity)
       team2.frame(maxWidth: .infinity)
     }

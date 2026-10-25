@@ -14,7 +14,7 @@ struct RoundEntryView: View {
       BiddingStep(draft: draft) { path.append(.tricks) }
         .toolbar {
           ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") { dismiss() }
+            Button { dismiss() } label: { Label("Cancel", systemImage: "xmark") }
           }
         }
         .navigationDestination(for: Step.self) { step in
@@ -46,35 +46,21 @@ private struct StepScaffold<Content: View>: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 10) { content }
-        .screenLayout(maxWidth: 600)
+        .screenLayout(maxWidth: 760)
         .padding(.bottom, 16)
     }
     .background(Theme.background)
     .safeAreaInset(edge: .bottom) {
       PrimaryButton(actionTitle, action: action)
         .disabled(!actionEnabled)
-        .screenLayout(maxWidth: 600)
+        .screenLayout(maxWidth: 760)
         .padding(.top, 10)
         .padding(.bottom, 6)
         .background(Theme.background)
     }
     .navigationTitle(headline)
+    .navigationSubtitleIfAvailable("Round \(store.game.rounds.count + 1)")
     .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      ToolbarItem(placement: .principal) {
-        VStack(spacing: 0) {
-          Text("ROUND \(store.game.rounds.count + 1)")
-            .font(.caption2.weight(.bold))
-            .tracking(1)
-            .foregroundStyle(Theme.muted)
-          Text(headline)
-            .font(.headline.weight(.heavy))
-            .foregroundStyle(Theme.text)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
-      }
-    }
     .toolbarBackground(Theme.background, for: .navigationBar)
   }
 }
@@ -105,6 +91,19 @@ private struct NumberGrid: View {
   }
 }
 
+/// The two teams' cards: side by side when both fit at full size, stacked
+/// otherwise. Both are needed to score, so this is not an `AdaptiveSplit`.
+private struct TeamPair<TeamCard: View>: View {
+  @ViewBuilder let card: (TeamID) -> TeamCard
+
+  var body: some View {
+    ViewThatFits(in: .horizontal) {
+      HStack(alignment: .top, spacing: 10) { ForEach(TeamID.allCases) { card($0) } }
+      VStack(spacing: 10) { ForEach(TeamID.allCases) { card($0) } }
+    }
+  }
+}
+
 // MARK: - Bidding
 
 private struct BiddingStep: View {
@@ -115,7 +114,7 @@ private struct BiddingStep: View {
   var body: some View {
     StepScaffold(headline: "Bidding", actionTitle: "Next: Tricks", actionEnabled: draft.biddingComplete, action: next) {
       TallyBar(draft: draft)
-      ForEach(TeamID.allCases) { team in
+      TeamPair { team in
         Card(padding: 14, accent: Theme.color(team)) {
           SectionLabel(store.game[team].label, color: Theme.color(team))
             .padding(.bottom, 4)
@@ -210,9 +209,7 @@ private struct TricksStep: View {
 
   var body: some View {
     StepScaffold(headline: "Tricks Taken", actionTitle: "Preview Score", actionEnabled: draft.tricksComplete, action: next) {
-      ForEach(TeamID.allCases) { team in
-        teamCard(team)
-      }
+      TeamPair { team in teamCard(team) }
     }
     .sensoryFeedback(.selection, trigger: draft.team1.tricks)
     .sensoryFeedback(.selection, trigger: draft.team2.tricks)

@@ -11,9 +11,6 @@ struct SetupView: View {
 
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
-        AppTitle()
-          .padding(.bottom, 6)
-
         Card(padding: 22) {
           VStack(alignment: .leading, spacing: 20) {
             teamFields(.team1, labels: ["Player 1", "Partner"])
@@ -81,7 +78,9 @@ struct SetupView: View {
     }
     .scrollDismissesKeyboard(.interactively)
     .background(Theme.background)
-    .toolbar(.hidden, for: .navigationBar)
+    .navigationTitle("Scoring Spades")
+    .navigationBarTitleDisplayMode(.large)
+    .toolbarBackground(Theme.background, for: .navigationBar)
   }
 
   // MARK: Pieces

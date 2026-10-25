@@ -92,7 +92,9 @@ struct ChoiceButton: View {
         .monospacedDigit()
         .lineLimit(1)
         .minimumScaleFactor(0.7)
-        .frame(maxWidth: .infinity, minHeight: height)
+        // The ideal width is the 44 pt hit target, which lets ViewThatFits
+        // tell whether a row of these fits; they can still shrink below it.
+        .frame(idealWidth: 44, maxWidth: .infinity, minHeight: height)
         .foregroundStyle(foreground)
         .background(background, in: .rect(cornerRadius: 12))
         .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(isSelected ? tint : Theme.border, lineWidth: 2) }
@@ -174,33 +176,30 @@ struct PressableStyle: ButtonStyle {
   }
 }
 
-/// App title with the spade, used at the top of the main screens.
-struct AppTitle: View {
-  var subtitle: String?
+extension View {
+  /// Centers content in a readable column on wide containers.
+  func screenLayout(maxWidth: CGFloat = 640) -> some View {
+    modifier(ReadableColumn(maxWidth: maxWidth))
+  }
 
-  var body: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 8) {
-      Image(systemName: "suit.spade.fill")
-        .font(.title2)
-      Text("Scoring Spades")
-        .font(.system(size: 26, weight: .bold))
-        .tracking(-0.5)
-      if let subtitle {
-        Text(subtitle)
-          .font(.footnote.weight(.medium))
-          .foregroundStyle(Theme.muted)
-      }
-    }
-    .foregroundStyle(Theme.text)
-    .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(.isHeader)
+  /// A second line under the navigation title where the OS supports one.
+  @ViewBuilder func navigationSubtitleIfAvailable(_ subtitle: String) -> some View {
+    if #available(iOS 26, *) { navigationSubtitle(subtitle) } else { self }
   }
 }
 
-extension View {
-  /// Centers content in a readable column on iPad and gives it the app background.
-  func screenLayout(maxWidth: CGFloat = 640) -> some View {
-    frame(maxWidth: maxWidth)
+/// The column cap is a line-length limit, not a device size: it scales with
+/// Dynamic Type, and anything narrower than it just fills the container.
+private struct ReadableColumn: ViewModifier {
+  @ScaledMetric private var maxWidth: CGFloat
+
+  init(maxWidth: CGFloat) {
+    _maxWidth = ScaledMetric(wrappedValue: maxWidth, relativeTo: .body)
+  }
+
+  func body(content: Content) -> some View {
+    content
+      .frame(maxWidth: maxWidth)
       .frame(maxWidth: .infinity)
       .padding(.horizontal, 16)
   }

@@ -24,6 +24,7 @@
 		C588D0FB9025A853B1C3AB17 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7122C772CE17EFC346BE212 /* SetupView.swift */; };
 		C5C0BD02AE9DA1F4A1CD3210 /* HouseRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77266997765957BE400B03D4 /* HouseRulesView.swift */; };
 		D7FDDC24F1636634616C7FFA /* SettingControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7550E09D74D1436C2988CC0 /* SettingControls.swift */; };
+		F96A4FD08571E4F0AF2FDBE2 /* AdaptiveSplit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32529152D1B6629003C718E1 /* AdaptiveSplit.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		0CC38E2314B9B12E50BCE08F /* ScoringSpadesUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ScoringSpadesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		11CA170C3BC01FB3D3754A20 /* ScoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoringTests.swift; sourceTree = "<group>"; };
 		2328E3BAF92D580DF7C92C65 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		32529152D1B6629003C718E1 /* AdaptiveSplit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveSplit.swift; sourceTree = "<group>"; };
 		3CDC83DE1DFD836001459705 /* Tips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tips.swift; sourceTree = "<group>"; };
 		5439DFED81CB9657B147175B /* RoundDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundDraft.swift; sourceTree = "<group>"; };
 		5D3661C4C46590C43853D3D6 /* RoundEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundEntryView.swift; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 		3C8B2DF8EA5713785ABEB871 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				32529152D1B6629003C718E1 /* AdaptiveSplit.swift */,
 				07A925AFAB759E3D4D5D1C53 /* GameOverView.swift */,
 				77266997765957BE400B03D4 /* HouseRulesView.swift */,
 				7C269B62C6394A6830F718EC /* InfoPages.swift */,
@@ -280,6 +283,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F96A4FD08571E4F0AF2FDBE2 /* AdaptiveSplit.swift in Sources */,
 				8D7FA998026415DDE7FC580E /* Game.swift in Sources */,
 				75D13B5540D57D1CBDFFA84B /* GameOverView.swift in Sources */,
 				46E5AD4BCA090F379145D707 /* GameStore.swift in Sources */,
@@ -392,7 +396,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = NQ6AJVVBBJ;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -406,7 +410,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -469,7 +473,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = NQ6AJVVBBJ;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -489,7 +493,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
