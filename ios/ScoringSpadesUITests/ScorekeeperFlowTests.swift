@@ -37,7 +37,7 @@ final class ScorekeeperFlowTests: XCTestCase {
     XCTAssertTrue(app.navigationBars["House Rules"].waitForExistence(timeout: 5))
     tap(app.buttons["4"])
     snapshot("06-house-rules")
-    app.navigationBars.buttons.firstMatch.tap()
+    goBack()
     XCTAssertTrue(start.waitForExistence(timeout: 5))
     XCTAssertEqual(app.buttons["House Rules"].value as? String, "Nil 100 · Blind nil 200 · Partner min 4")
 
@@ -54,7 +54,7 @@ final class ScorekeeperFlowTests: XCTestCase {
     tap(app.buttons["How to Play"])
     XCTAssertTrue(app.navigationBars["How to Play"].waitForExistence(timeout: 5))
     snapshot("05-how-to-play")
-    app.navigationBars.buttons.firstMatch.tap()
+    goBack()
     XCTAssertTrue(start.waitForExistence(timeout: 5))
 
     app.swipeDown()
@@ -81,7 +81,7 @@ final class ScorekeeperFlowTests: XCTestCase {
     }
     app.swipeDown(velocity: .slow)
     snapshot("02-bidding")
-    app.navigationBars.buttons["Cancel"].tap()
+    app.buttons["Cancel"].firstMatch.tap()
 
     // The game survives a relaunch.
     app.terminate()
@@ -126,6 +126,16 @@ final class ScorekeeperFlowTests: XCTestCase {
       swipes += 1
     }
     element.tap()
+  }
+
+  /// On iPhone Duo the back button moves out of the navigation bar to the side edge.
+  private func goBack() {
+    let navBack = app.navigationBars.buttons.firstMatch
+    if navBack.exists && navBack.isHittable {
+      navBack.tap()
+    } else {
+      app.buttons["BackButton"].firstMatch.tap()
+    }
   }
 
   /// iPhone shows a Cancel button; on iPad the dialog is a popover dismissed by tapping outside.
